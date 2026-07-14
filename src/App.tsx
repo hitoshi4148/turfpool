@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { PitchUploader, type SlotsMeta } from './components/PitchUploader'
 import { PoolVisualization } from './components/PoolVisualization'
 import { TurfPartnerBanners } from './components/TurfPartnerBanners'
@@ -16,6 +16,7 @@ function App() {
     poolReady: true,
     allSlotsSample: true,
   })
+  const poolSectionRef = useRef<HTMLDivElement>(null)
 
   const onSlotsMetaChange = useCallback((meta: SlotsMeta) => {
     setSlotsMeta(meta)
@@ -30,6 +31,27 @@ function App() {
     [],
   )
 
+  const scrollPoolIntoView = useCallback(() => {
+    poolSectionRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+  }, [])
+
+  const openPoolView = useCallback(() => {
+    if (showPool) {
+      scrollPoolIntoView()
+      return
+    }
+    setShowPool(true)
+  }, [showPool, scrollPoolIntoView])
+
+  useEffect(() => {
+    if (!showPool) return
+    const timer = window.setTimeout(scrollPoolIntoView, 50)
+    return () => window.clearTimeout(timer)
+  }, [showPool, scrollPoolIntoView])
+
   return (
     <div className="flex min-h-svh flex-col bg-slate-950 text-slate-100">
       <header className="border-b border-slate-800 bg-slate-900/80 px-4 py-4 backdrop-blur sm:px-6">
@@ -37,7 +59,7 @@ function App() {
           芝しごと・ターフプール
         </h1>
         <p className="mt-0.5 text-[0.7rem] text-slate-500 sm:text-xs">
-          v1.0.0
+          v1.1.0
         </p>
         <p className="mt-1 max-w-2xl text-xs text-slate-400 sm:text-sm">
           サッカーグラウンドの芝の状態を、ピッチ上の5地点（四隅と中央）の写真から把握するためのツールです。各点の画像を解析すると、芝の指標とプール状のビューでフィールド全体の傾向やムラを可視化できます。
@@ -76,7 +98,7 @@ function App() {
             <button
               type="button"
               disabled={!poolReady}
-              onClick={() => setShowPool(true)}
+              onClick={openPoolView}
               className="rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-medium text-white shadow transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
             >
               プール状ビュー
@@ -98,7 +120,10 @@ function App() {
         </div>
 
         {showPool && indicesByPoint ? (
-          <div className="flex min-h-0 w-full flex-1 flex-col">
+          <div
+            ref={poolSectionRef}
+            className="flex min-h-0 w-full flex-1 flex-col scroll-mt-4"
+          >
             <PoolVisualization
               indicesByPoint={indicesByPoint}
               metric={poolMetric}
