@@ -74,17 +74,31 @@ npm run lint
 | パス | 内容 |
 |------|------|
 | `src/App.tsx` | 画面全体のレイアウト・プール表示の切り替え |
+| `src/components/AppFooter.tsx` | フッター（芝しごとアプリリンク・ロゴ・バージョン） |
+| `src/config/app.ts` | アプリバージョンと芝しごとシリーズのリンク一覧 |
 | `src/components/PitchUploader.tsx` | 5 地点アップロード・サンプル初期状態 |
 | `src/lib/analysis/indices.ts` | 指標の算出ロジック |
 | `src/config/turfConstants.ts` | 閾値・プール用定数 |
 | `src/components/pool/` | Three.js プールシーン・メッシュ・目盛り |
-| `public/` | ファビコン・パートナー用バナー画像 |
+| `public/` | ファビコン・グロウアンドプログレスロゴ・パートナー用バナー画像 |
 
 ---
 
 ## クレジット・リンク
 
-- フッターのリンク先: [グロウアンドプログレス](https://www.turf-tools.jp/)（芝しごと）
+- ブラウザタブのファビコン: グロウアンドプログレスのロゴ（`public/favicon.png` ほか）
+- フッター: 芝しごとシリーズ各アプリへのリンク、[グロウアンドプログレス](https://www.turf-tools.jp/) のロゴとサイトリンク、アプリバージョン（v1.1.0）
+- 芝しごとシリーズ（フッター掲載）:
+  - [ポータル](https://www.turf-tools.jp/portal/)
+  - [楽RAC農薬ローテ](https://www.turf-tools.jp/portal/rac/)
+  - [施肥設計ナビ](https://fertilization-design.onrender.com/)
+  - [病害リスク予報](https://www.turf-tools.jp/portal/risk/)
+  - [AI質問箱](https://turf-advisor.onrender.com/)
+  - [病害画像診断AI](https://www.turf-tools.jp/portal/diagnosis/)
+  - [ピンポイント天気で芝しごと](https://www.turf-tools.jp/portal/spray/)
+  - [積算温度追跡マップ](https://turfmap.onrender.com/)
+  - [温量指数気候区分マップ](https://climate-map-x30t.onrender.com/)
+  - [クレームサバイバル](https://claim-survival.onrender.com/)
 - パートナー・ブログ等のバナー: `TurfPartnerBanners` コンポーネントおよび `public/` 配下の画像
 
 ---

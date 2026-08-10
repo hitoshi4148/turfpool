@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { AppFooter } from './components/AppFooter'
 import { PitchUploader, type SlotsMeta } from './components/PitchUploader'
 import { PoolVisualization } from './components/PoolVisualization'
 import { TurfPartnerBanners } from './components/TurfPartnerBanners'
+import { APP_VERSION } from './config/app'
 import type { MetricId, PitchPointId, TurfIndices } from './types'
 
 function App() {
@@ -59,7 +61,7 @@ function App() {
           芝しごと・ターフプール
         </h1>
         <p className="mt-0.5 text-[0.7rem] text-slate-500 sm:text-xs">
-          v1.1.0
+          {APP_VERSION}
         </p>
         <p className="mt-1 max-w-2xl text-xs text-slate-400 sm:text-sm">
           サッカーグラウンドの芝の状態を、ピッチ上の5地点（四隅と中央）の写真から把握するためのツールです。各点の画像を解析すると、芝の指標とプール状のビューでフィールド全体の傾向やムラを可視化できます。
@@ -133,18 +135,7 @@ function App() {
         ) : null}
       </main>
 
-      <footer className="border-t border-slate-800 bg-slate-950/40 px-4 py-4 sm:px-6">
-        <div className="mx-auto w-full max-w-6xl text-center text-xs text-slate-400 xl:max-w-7xl 2xl:max-w-screen-2xl">
-          <a
-            href="https://www.turf-tools.jp/"
-            className="underline decoration-slate-600 underline-offset-4 transition hover:text-slate-200 hover:decoration-slate-400"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            グロウアンドプログレス
-          </a>
-        </div>
-      </footer>
+      <AppFooter />
     </div>
   )
 }
