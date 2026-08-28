@@ -1,6 +1,9 @@
 import { useCallback, useId, useLayoutEffect, useState } from 'react'
 import { analyzeTurfImage } from '../lib/analysis/indices'
-import { fileToAnalysisCanvas } from '../lib/analysis/imagePipeline'
+import {
+  canvasToPreviewDataUrl,
+  fileToAnalysisCanvas,
+} from '../lib/analysis/imagePipeline'
 import { buildInitialSampleSlots } from '../lib/samplePitchSlots'
 import {
   PITCH_POINT_ORDER,
@@ -186,7 +189,7 @@ export function PitchUploader({
       try {
         const canvas = await fileToAnalysisCanvas(file)
         const indices = analyzeTurfImage(canvas)
-        const previewUrl = URL.createObjectURL(file)
+        const previewUrl = canvasToPreviewDataUrl(canvas)
         setSlots((s) => {
           const next = {
             ...s,
@@ -203,7 +206,11 @@ export function PitchUploader({
           return next
         })
       } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e)
+        let msg = e instanceof Error ? e.message : String(e)
+        if (/memory|allocation|ImageBitmap|OutOfMemory|canvas/i.test(msg)) {
+          msg =
+            '画像が大きすぎるか、端末のメモリが不足しています。他のアプリを閉じてから、もう一度お試しください。'
+        }
         setSlots((s) => {
           const next = {
             ...s,

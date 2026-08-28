@@ -1,4 +1,4 @@
-export const APP_VERSION = 'v1.2.0'
+export const APP_VERSION = 'v1.2.1'
 
 export const SHIBA_SHIGOTO_APPS = [
   { label: 'ポータル', href: 'https://www.turf-tools.jp/portal/' },

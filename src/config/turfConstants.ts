@@ -3,8 +3,20 @@
  * Tune here without touching core algorithms.
  */
 
-/** Longest edge after client resize (px). */
-export const ANALYSIS_MAX_EDGE_PX = 768
+function resolveAnalysisMaxEdgePx(): number {
+  if (typeof navigator === 'undefined') return 768
+  const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  const deviceMemory = (navigator as Navigator & { deviceMemory?: number })
+    .deviceMemory
+  const lowMem = typeof deviceMemory === 'number' && deviceMemory <= 4
+  return mobile || lowMem ? 512 : 768
+}
+
+/** Longest edge after client resize (px). Mobile / low-RAM devices use a smaller cap. */
+export const ANALYSIS_MAX_EDGE_PX = resolveAnalysisMaxEdgePx()
+
+/** Thumbnail circle on the pitch map (px, longest edge). */
+export const PREVIEW_MAX_EDGE_PX = 96
 
 /**
  * GCP via HSV grass range（H: 0–179, S/V: 0–255、indices.ts の近似変換に合わせる）。
