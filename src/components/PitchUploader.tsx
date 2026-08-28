@@ -13,6 +13,7 @@ import {
   type TurfIndices,
 } from '../types'
 import { MetricPanel } from './MetricPanel'
+import { MobileCameraCapture } from './MobileCameraCapture'
 
 /** IFAB 国際試合用の最大寸法（m）に合わせたピッチ白線。viewBox 105×68 = 長手が左右ゴール。 */
 function PitchMarkingsSvg() {
@@ -150,6 +151,8 @@ export function PitchUploader({
   )
   const [processing, setProcessing] = useState(false)
   const processingRef = useRef(false)
+  const [cameraSlot, setCameraSlot] = useState<PitchPointId | null>(null)
+  const mobileCapture = isLikelyMobileDevice()
 
   const notifyComplete = useCallback(
     (next: Record<PitchPointId, PointSlotState>) => {
@@ -176,67 +179,104 @@ export function PitchUploader({
     notifyComplete(slots)
   }, [notifyComplete, slots])
 
+  const applyAnalysisCanvas = useCallback(
+    (pointId: PitchPointId, canvas: HTMLCanvasElement) => {
+      const indices = analyzeTurfImage(canvas)
+      const previewUrl = canvasToPreviewDataUrl(canvas)
+      setSlots((s) => {
+        const next = {
+          ...s,
+          [pointId]: {
+            ...s[pointId],
+            busy: false,
+            indices,
+            previewUrl,
+            error: null,
+            isSample: false,
+          },
+        }
+        notifyComplete(next)
+        return next
+      })
+    },
+    [notifyComplete],
+  )
+
+  const beginProcessing = useCallback((pointId: PitchPointId) => {
+    setSlots((s) => {
+      const prevUrl = s[pointId].previewUrl
+      if (prevUrl?.startsWith('blob:')) URL.revokeObjectURL(prevUrl)
+      return {
+        ...s,
+        [pointId]: { ...s[pointId], busy: true, error: null },
+      }
+    })
+  }, [])
+
+  const failProcessing = useCallback(
+    (pointId: PitchPointId, e: unknown) => {
+      let msg = e instanceof Error ? e.message : String(e)
+      if (/memory|allocation|ImageBitmap|OutOfMemory|canvas/i.test(msg)) {
+        msg =
+          '端末のメモリが不足しています。他のアプリとタブを閉じてから、1地点ずつ撮影してください。'
+      }
+      setSlots((s) => {
+        const next = {
+          ...s,
+          [pointId]: {
+            ...s[pointId],
+            busy: false,
+            indices: null,
+            previewUrl: null,
+            error: msg,
+          },
+        }
+        notifyComplete(next)
+        return next
+      })
+    },
+    [notifyComplete],
+  )
+
+  const handleCanvas = useCallback(
+    async (pointId: PitchPointId, canvas: HTMLCanvasElement) => {
+      if (processingRef.current) return
+
+      processingRef.current = true
+      setProcessing(true)
+      beginProcessing(pointId)
+
+      try {
+        applyAnalysisCanvas(pointId, canvas)
+      } catch (e) {
+        failProcessing(pointId, e)
+      } finally {
+        processingRef.current = false
+        setProcessing(false)
+      }
+    },
+    [applyAnalysisCanvas, beginProcessing, failProcessing],
+  )
+
   const handleFile = useCallback(
     async (pointId: PitchPointId, file: File | undefined) => {
       if (!file || processingRef.current) return
 
       processingRef.current = true
       setProcessing(true)
-
-      setSlots((s) => {
-        const prevUrl = s[pointId].previewUrl
-        if (prevUrl?.startsWith('blob:')) URL.revokeObjectURL(prevUrl)
-        return {
-          ...s,
-          [pointId]: { ...s[pointId], busy: true, error: null },
-        }
-      })
+      beginProcessing(pointId)
 
       try {
         const canvas = await fileToAnalysisCanvas(file)
-        const indices = analyzeTurfImage(canvas)
-        const previewUrl = canvasToPreviewDataUrl(canvas)
-        setSlots((s) => {
-          const next = {
-            ...s,
-            [pointId]: {
-              ...s[pointId],
-              busy: false,
-              indices,
-              previewUrl,
-              error: null,
-              isSample: false,
-            },
-          }
-          notifyComplete(next)
-          return next
-        })
+        applyAnalysisCanvas(pointId, canvas)
       } catch (e) {
-        let msg = e instanceof Error ? e.message : String(e)
-        if (/memory|allocation|ImageBitmap|OutOfMemory|canvas/i.test(msg)) {
-          msg =
-            '端末のメモリが不足しています。他のアプリとタブを閉じてから、1地点ずつ撮影してください。'
-        }
-        setSlots((s) => {
-          const next = {
-            ...s,
-            [pointId]: {
-              ...s[pointId],
-              busy: false,
-              indices: null,
-              previewUrl: null,
-              error: msg,
-            },
-          }
-          notifyComplete(next)
-          return next
-        })
+        failProcessing(pointId, e)
       } finally {
         processingRef.current = false
         setProcessing(false)
       }
     },
-    [notifyComplete],
+    [applyAnalysisCanvas, beginProcessing, failProcessing],
   )
 
   const showSampleHint = PITCH_POINT_ORDER.every(
@@ -247,9 +287,9 @@ export function PitchUploader({
     <div className="mx-auto flex w-full max-w-none flex-col gap-4">
       <p className="text-xs text-slate-500">
         解析はすべてお使いのブラウザ内で完結します。画像は端末から外部へ送信されず、サーバーに保存もされません。
-        {isLikelyMobileDevice() ? (
+        {mobileCapture ? (
           <span className="mt-1 block text-slate-400">
-            スマホでは1地点ずつ撮影してください。メモリ不足になる場合は他のアプリを閉じてください。
+            スマホではアプリ内カメラで低解像度撮影します（端末カメラアプリは使いません）。1地点ずつ撮影してください。
           </span>
         ) : null}
       </p>
@@ -265,7 +305,7 @@ export function PitchUploader({
             className="shrink-0 border-b border-white/25 bg-black/40 px-2 py-2 text-center text-[0.65rem] leading-snug text-amber-100 backdrop-blur-sm sm:px-3 sm:text-xs"
             role="status"
           >
-            ピッチ上のカメラをタップして撮影（または画像選択）してください。サンプルのままでも下のプールはお試しできます。
+            ピッチ上のカメラをタップして撮影してください。サンプルのままでも下のプールはお試しできます。
           </div>
         ) : null}
         <div className="relative aspect-[105/68] w-full overflow-visible">
@@ -293,12 +333,11 @@ export function PitchUploader({
                   ) : null}
                 </span>
 
-                <div className="relative">
+                <div className="relative flex flex-col items-center gap-0.5">
                   <input
                     id={inputId}
                     type="file"
-                    accept="image/*"
-                    capture="environment"
+                    accept="image/jpeg,image/png,image/webp"
                     className="sr-only"
                     disabled={slot.busy || processing}
                     onChange={(e) => {
@@ -307,49 +346,111 @@ export function PitchUploader({
                       e.target.value = ''
                     }}
                   />
-                  <label
-                    htmlFor={inputId}
-                    title={
-                      slot.busy
-                        ? '解析中'
-                        : hasUserPhoto
-                          ? '再撮影'
-                          : '撮影または画像を選ぶ'
-                    }
-                    className={`relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 bg-slate-950/75 text-white shadow-lg backdrop-blur-sm transition sm:h-14 sm:w-14 ${
-                      slot.busy
-                        ? 'cursor-not-allowed border-white/40 opacity-60'
-                        : hasUserPhoto
-                          ? 'cursor-pointer border-emerald-300 ring-2 ring-emerald-400/50 hover:bg-slate-900/85'
-                          : 'cursor-pointer border-white/90 hover:border-cyan-200 hover:bg-slate-900/85'
-                    }`}
-                  >
-                    {slot.previewUrl ? (
-                      <img
-                        src={slot.previewUrl}
-                        alt=""
-                        className="absolute inset-0 h-full w-full object-cover opacity-90"
-                      />
-                    ) : null}
-                    <CameraIcon
-                      className={`relative z-[1] h-6 w-6 sm:h-7 sm:w-7 ${
-                        slot.previewUrl ? 'drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]' : ''
+                  {mobileCapture ? (
+                    <button
+                      type="button"
+                      disabled={slot.busy || processing}
+                      onClick={() => setCameraSlot(id)}
+                      title={
+                        slot.busy
+                          ? '解析中'
+                          : hasUserPhoto
+                            ? '再撮影'
+                            : '撮影'
+                      }
+                      className={`relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 bg-slate-950/75 text-white shadow-lg backdrop-blur-sm transition sm:h-14 sm:w-14 ${
+                        slot.busy || processing
+                          ? 'cursor-not-allowed border-white/40 opacity-60'
+                          : hasUserPhoto
+                            ? 'border-emerald-300 ring-2 ring-emerald-400/50 hover:bg-slate-900/85'
+                            : 'border-white/90 hover:border-cyan-200 hover:bg-slate-900/85'
                       }`}
-                    />
-                    {hasUserPhoto ? (
-                      <span
-                        className="absolute -right-0.5 -top-0.5 z-[2] flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[0.55rem] font-bold text-white ring-2 ring-emerald-950"
-                        aria-hidden
-                      >
-                        ✓
-                      </span>
-                    ) : null}
-                    {slot.busy ? (
-                      <span className="absolute inset-0 z-[3] flex items-center justify-center bg-black/45 text-[0.55rem] font-medium">
-                        …
-                      </span>
-                    ) : null}
-                  </label>
+                    >
+                      {slot.previewUrl ? (
+                        <img
+                          src={slot.previewUrl}
+                          alt=""
+                          className="absolute inset-0 h-full w-full object-cover opacity-90"
+                        />
+                      ) : null}
+                      <CameraIcon
+                        className={`relative z-[1] h-6 w-6 sm:h-7 sm:w-7 ${
+                          slot.previewUrl
+                            ? 'drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]'
+                            : ''
+                        }`}
+                      />
+                      {hasUserPhoto ? (
+                        <span
+                          className="absolute -right-0.5 -top-0.5 z-[2] flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[0.55rem] font-bold text-white ring-2 ring-emerald-950"
+                          aria-hidden
+                        >
+                          ✓
+                        </span>
+                      ) : null}
+                      {slot.busy ? (
+                        <span className="absolute inset-0 z-[3] flex items-center justify-center bg-black/45 text-[0.55rem] font-medium">
+                          …
+                        </span>
+                      ) : null}
+                    </button>
+                  ) : (
+                    <label
+                      htmlFor={inputId}
+                      title={
+                        slot.busy
+                          ? '解析中'
+                          : hasUserPhoto
+                            ? '再撮影'
+                            : '撮影または画像を選ぶ'
+                      }
+                      className={`relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 bg-slate-950/75 text-white shadow-lg backdrop-blur-sm transition sm:h-14 sm:w-14 ${
+                        slot.busy
+                          ? 'cursor-not-allowed border-white/40 opacity-60'
+                          : hasUserPhoto
+                            ? 'cursor-pointer border-emerald-300 ring-2 ring-emerald-400/50 hover:bg-slate-900/85'
+                            : 'cursor-pointer border-white/90 hover:border-cyan-200 hover:bg-slate-900/85'
+                      }`}
+                    >
+                      {slot.previewUrl ? (
+                        <img
+                          src={slot.previewUrl}
+                          alt=""
+                          className="absolute inset-0 h-full w-full object-cover opacity-90"
+                        />
+                      ) : null}
+                      <CameraIcon
+                        className={`relative z-[1] h-6 w-6 sm:h-7 sm:w-7 ${
+                          slot.previewUrl
+                            ? 'drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]'
+                            : ''
+                        }`}
+                      />
+                      {hasUserPhoto ? (
+                        <span
+                          className="absolute -right-0.5 -top-0.5 z-[2] flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[0.55rem] font-bold text-white ring-2 ring-emerald-950"
+                          aria-hidden
+                        >
+                          ✓
+                        </span>
+                      ) : null}
+                      {slot.busy ? (
+                        <span className="absolute inset-0 z-[3] flex items-center justify-center bg-black/45 text-[0.55rem] font-medium">
+                          …
+                        </span>
+                      ) : null}
+                    </label>
+                  )}
+                  {mobileCapture ? (
+                    <button
+                      type="button"
+                      disabled={slot.busy || processing}
+                      onClick={() => document.getElementById(inputId)?.click()}
+                      className="text-[0.55rem] text-cyan-300 underline decoration-cyan-500/50 underline-offset-2 disabled:opacity-40"
+                    >
+                      画像
+                    </button>
+                  ) : null}
                 </div>
 
                 <SlotMetricsAccordion
@@ -374,6 +475,15 @@ export function PitchUploader({
           })}
         </div>
       </div>
+
+      <MobileCameraCapture
+        open={cameraSlot !== null}
+        slotLabel={cameraSlot ? slots[cameraSlot].label : ''}
+        onClose={() => setCameraSlot(null)}
+        onCapture={(canvas) => {
+          if (cameraSlot) void handleCanvas(cameraSlot, canvas)
+        }}
+      />
     </div>
   )
 }

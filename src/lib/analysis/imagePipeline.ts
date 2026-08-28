@@ -1,4 +1,3 @@
-import imageCompression from 'browser-image-compression'
 import {
   ANALYSIS_MAX_EDGE_PX,
   MAX_UPLOAD_BYTES,
@@ -33,6 +32,17 @@ function drawToCanvas(
   return canvas
 }
 
+/** Capture one video frame at analysis resolution (avoids full camera-app JPEG). */
+export function captureVideoFrameToCanvas(
+  video: HTMLVideoElement,
+  maxEdge: number,
+): HTMLCanvasElement {
+  const vw = video.videoWidth
+  const vh = video.videoHeight
+  if (!vw || !vh) throw new Error('カメラ映像が取得できません')
+  return drawToCanvas(video, vw, vh, maxEdge)
+}
+
 async function decodeBitmapResized(
   file: File,
   maxEdge: number,
@@ -56,6 +66,7 @@ async function fileToAnalysisCanvasViaCompression(
   maxEdge: number,
   useWebWorker: boolean,
 ): Promise<HTMLCanvasElement> {
+  const { default: imageCompression } = await import('browser-image-compression')
   const compressed = await imageCompression(file, {
     maxSizeMB: 0.28,
     maxWidthOrHeight: maxEdge,
