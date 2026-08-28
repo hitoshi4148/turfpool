@@ -9,11 +9,14 @@ function resolveAnalysisMaxEdgePx(): number {
   const deviceMemory = (navigator as Navigator & { deviceMemory?: number })
     .deviceMemory
   const lowMem = typeof deviceMemory === 'number' && deviceMemory <= 4
-  return mobile || lowMem ? 512 : 768
+  return mobile || lowMem ? 320 : 768
 }
 
 /** Longest edge after client resize (px). Mobile / low-RAM devices use a smaller cap. */
 export const ANALYSIS_MAX_EDGE_PX = resolveAnalysisMaxEdgePx()
+
+/** Reject camera files above this size before decode (bytes). */
+export const MAX_UPLOAD_BYTES = 24 * 1024 * 1024
 
 /** Thumbnail circle on the pitch map (px, longest edge). */
 export const PREVIEW_MAX_EDGE_PX = 96

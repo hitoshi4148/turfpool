@@ -1,8 +1,9 @@
-import { useCallback, useId, useLayoutEffect, useState } from 'react'
+import { useCallback, useId, useLayoutEffect, useRef, useState } from 'react'
 import { analyzeTurfImage } from '../lib/analysis/indices'
 import {
   canvasToPreviewDataUrl,
   fileToAnalysisCanvas,
+  isLikelyMobileDevice,
 } from '../lib/analysis/imagePipeline'
 import { buildInitialSampleSlots } from '../lib/samplePitchSlots'
 import {
@@ -147,6 +148,8 @@ export function PitchUploader({
   const [openMetricsSlot, setOpenMetricsSlot] = useState<PitchPointId | null>(
     null,
   )
+  const [processing, setProcessing] = useState(false)
+  const processingRef = useRef(false)
 
   const notifyComplete = useCallback(
     (next: Record<PitchPointId, PointSlotState>) => {
@@ -175,7 +178,10 @@ export function PitchUploader({
 
   const handleFile = useCallback(
     async (pointId: PitchPointId, file: File | undefined) => {
-      if (!file) return
+      if (!file || processingRef.current) return
+
+      processingRef.current = true
+      setProcessing(true)
 
       setSlots((s) => {
         const prevUrl = s[pointId].previewUrl
@@ -209,7 +215,7 @@ export function PitchUploader({
         let msg = e instanceof Error ? e.message : String(e)
         if (/memory|allocation|ImageBitmap|OutOfMemory|canvas/i.test(msg)) {
           msg =
-            '画像が大きすぎるか、端末のメモリが不足しています。他のアプリを閉じてから、もう一度お試しください。'
+            '端末のメモリが不足しています。他のアプリとタブを閉じてから、1地点ずつ撮影してください。'
         }
         setSlots((s) => {
           const next = {
@@ -225,6 +231,9 @@ export function PitchUploader({
           notifyComplete(next)
           return next
         })
+      } finally {
+        processingRef.current = false
+        setProcessing(false)
       }
     },
     [notifyComplete],
@@ -238,6 +247,11 @@ export function PitchUploader({
     <div className="mx-auto flex w-full max-w-none flex-col gap-4">
       <p className="text-xs text-slate-500">
         解析はすべてお使いのブラウザ内で完結します。画像は端末から外部へ送信されず、サーバーに保存もされません。
+        {isLikelyMobileDevice() ? (
+          <span className="mt-1 block text-slate-400">
+            スマホでは1地点ずつ撮影してください。メモリ不足になる場合は他のアプリを閉じてください。
+          </span>
+        ) : null}
       </p>
 
       <div
@@ -286,7 +300,7 @@ export function PitchUploader({
                     accept="image/*"
                     capture="environment"
                     className="sr-only"
-                    disabled={slot.busy}
+                    disabled={slot.busy || processing}
                     onChange={(e) => {
                       const f = e.target.files?.[0]
                       void handleFile(id, f)

@@ -1,10 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { AppFooter } from './components/AppFooter'
 import { PitchUploader, type SlotsMeta } from './components/PitchUploader'
-import { PoolVisualization } from './components/PoolVisualization'
 import { TurfPartnerBanners } from './components/TurfPartnerBanners'
 import { APP_VERSION } from './config/app'
 import type { MetricId, PitchPointId, TurfIndices } from './types'
+
+const PoolVisualization = lazy(() =>
+  import('./components/PoolVisualization').then((m) => ({
+    default: m.PoolVisualization,
+  })),
+)
 
 function App() {
   const [poolReady, setPoolReady] = useState(false)
@@ -126,11 +131,19 @@ function App() {
             ref={poolSectionRef}
             className="flex min-h-0 w-full flex-1 flex-col scroll-mt-4"
           >
-            <PoolVisualization
-              indicesByPoint={indicesByPoint}
-              metric={poolMetric}
-              onMetricChange={setPoolMetric}
-            />
+            <Suspense
+              fallback={
+                <div className="rounded-xl border border-slate-700 bg-slate-900/40 p-6 text-center text-sm text-slate-400">
+                  プール状ビューを読み込み中…
+                </div>
+              }
+            >
+              <PoolVisualization
+                indicesByPoint={indicesByPoint}
+                metric={poolMetric}
+                onMetricChange={setPoolMetric}
+              />
+            </Suspense>
           </div>
         ) : null}
       </main>
