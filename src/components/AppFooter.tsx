@@ -1,4 +1,5 @@
 import { APP_VERSION, SHIBA_SHIGOTO_APPS } from '../config/app'
+import { portalSharedAsset } from '../config/assets'
 
 const linkClass =
   'text-slate-400 underline decoration-slate-600 underline-offset-4 transition hover:text-slate-200 hover:decoration-slate-400'
@@ -30,7 +31,7 @@ export function AppFooter() {
           rel="noopener noreferrer"
         >
           <img
-            src="/grow-and-progress-logo.png"
+            src={portalSharedAsset('grow-and-progress-logo.png?v=2')}
             alt=""
             width={80}
             height={80}

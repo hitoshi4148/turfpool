@@ -81,7 +81,7 @@ function App() {
             —
           </span>
           <span className="inline sm:inline">
-            ① ピッチの5地点に写真を置く
+            ① ピッチ上のカメラで5地点を撮影
           </span>
           <span className="mx-1.5 text-slate-500" aria-hidden>
             →

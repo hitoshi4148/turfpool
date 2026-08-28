@@ -49,6 +49,24 @@ function PitchMarkingsSvg() {
   )
 }
 
+function CameraIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M4 7h3l2-2h6l2 2h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </svg>
+  )
+}
+
 function SlotMetricsAccordion({
   indices,
   open,
@@ -58,63 +76,41 @@ function SlotMetricsAccordion({
   indices: TurfIndices | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** 下側スロットでは true（パネルを上に開き、親の overflow で隠れないようにする） */
   opensAbove: boolean
 }) {
   const panelId = useId()
 
   const panelClass = opensAbove
-    ? 'absolute left-0 right-0 bottom-full z-[100] mb-1 max-h-[min(42vh,15rem)] overflow-y-auto rounded-md bg-slate-950/95 px-2 py-2 text-left shadow-xl ring-1 ring-white/15 backdrop-blur-sm'
-    : 'absolute left-0 right-0 top-full z-[100] mt-1 max-h-[min(55vh,24rem)] overflow-y-auto rounded-md bg-slate-950/95 px-2 py-2 text-left shadow-xl ring-1 ring-white/15 backdrop-blur-sm'
+    ? 'absolute left-1/2 z-[100] mb-1 w-[min(14rem,calc(100vw-2rem))] max-h-[min(42vh,15rem)] -translate-x-1/2 overflow-y-auto rounded-md bg-slate-950/95 px-2 py-2 text-left shadow-xl ring-1 ring-white/15 backdrop-blur-sm bottom-full'
+    : 'absolute left-1/2 z-[100] mt-1 w-[min(14rem,calc(100vw-2rem))] max-h-[min(55vh,24rem)] -translate-x-1/2 overflow-y-auto rounded-md bg-slate-950/95 px-2 py-2 text-left shadow-xl ring-1 ring-white/15 backdrop-blur-sm top-full'
 
   return (
-    <div className="relative w-full">
+    <div className="relative">
       <button
         type="button"
         onClick={() => onOpenChange(!open)}
         aria-expanded={open}
         aria-controls={panelId}
-        className="flex w-full items-center justify-between gap-1 rounded-md bg-slate-950/90 px-1.5 py-1 text-left text-[0.65rem] text-slate-200 ring-1 ring-white/10 transition hover:bg-slate-900/90 sm:text-xs"
+        className="rounded-full bg-slate-950/85 px-2 py-0.5 text-[0.6rem] font-medium text-slate-200 ring-1 ring-white/15 transition hover:bg-slate-900/90 sm:text-[0.65rem]"
       >
-        <span className="font-medium">{indices ? '測定指標' : '指標'}</span>
-        <span className="shrink-0 text-slate-400" aria-hidden>
-          {open ? '▲' : '▼'}
-        </span>
+        {open ? '指標▲' : '指標▼'}
       </button>
       {open ? (
         <div id={panelId} role="region" className={panelClass}>
           <MetricPanel indices={indices} compact />
-          <div className="mt-3 min-h-[2.5rem] border-t border-white/10 pt-2 text-[0.6rem] leading-snug text-slate-400">
-            詳しい説明はプール状ビューを開いたときの下部に表示されます。
-          </div>
         </div>
       ) : null}
     </div>
   )
 }
 
-const SLOT_STYLE: Record<
-  PitchPointId,
-  { className: string; arrow?: string }
-> = {
-  tl: { className: 'left-[6%] top-[8%]' },
-  tr: { className: 'right-[6%] top-[8%] left-auto' },
-  bl: { className: 'left-[6%] bottom-[10%] top-auto' },
-  br: { className: 'right-[6%] bottom-[10%] left-auto top-auto' },
-  c: {
-    className: 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2',
-  },
-}
-
-/** 5点すべて同じ横幅（中央も四隅に合わせる） */
-const SLOT_WIDTH_CLASS = 'w-[30%] max-w-[9.5rem] sm:w-[28%]'
-
-const SLOT_FRAME: Record<PitchPointId, string> = {
-  tl: SLOT_WIDTH_CLASS,
-  tr: SLOT_WIDTH_CLASS,
-  bl: SLOT_WIDTH_CLASS,
-  br: SLOT_WIDTH_CLASS,
-  c: SLOT_WIDTH_CLASS,
+/** ピッチ上のカメラマーク位置（中心基準） */
+const MARKER_POS: Record<PitchPointId, string> = {
+  tl: 'left-[6%] top-[8%]',
+  tr: 'left-[94%] top-[8%]',
+  bl: 'left-[6%] top-[90%]',
+  br: 'left-[94%] top-[90%]',
+  c: 'left-1/2 top-1/2',
 }
 
 function slotStackZ(
@@ -129,7 +125,6 @@ function slotStackZ(
 
 export interface SlotsMeta {
   poolReady: boolean
-  /** 5地点ともまだサンプル画像のとき true（ユーザーの写真に1枚でも差し替えると false） */
   allSlotsSample: boolean
 }
 
@@ -138,7 +133,6 @@ interface PitchUploaderProps {
     complete: boolean,
     indices: Record<PitchPointId, import('../types').TurfIndices> | null,
   ) => void
-  /** 完了状態・サンプル一括かどうか（App で案内文に利用） */
   onSlotsMetaChange?: (meta: SlotsMeta) => void
 }
 
@@ -250,66 +244,93 @@ export function PitchUploader({
             className="shrink-0 border-b border-white/25 bg-black/40 px-2 py-2 text-center text-[0.65rem] leading-snug text-amber-100 backdrop-blur-sm sm:px-3 sm:text-xs"
             role="status"
           >
-            各地点の枠をタップ（クリック）して、現場の写真に差し替えてください。サンプルのままでも下のプールはお試しできます。
+            ピッチ上のカメラをタップして撮影（または画像選択）してください。サンプルのままでも下のプールはお試しできます。
           </div>
         ) : null}
         <div className="relative aspect-[105/68] w-full overflow-visible">
           <div className="pointer-events-none absolute inset-[10%] rounded-sm border-2 border-dashed border-white/40" />
           <PitchMarkingsSvg />
 
-        {PITCH_POINT_ORDER.map((id) => {
-          const slot = slots[id]
-          const st = SLOT_STYLE[id]
-          const frame = SLOT_FRAME[id]
-          const metricsOpen = openMetricsSlot === id
-          const zSlot = slotStackZ(id, metricsOpen)
-          return (
-            <div
-              key={id}
-              className={`absolute flex flex-col gap-1 ${zSlot} ${frame} ${st.className}`}
-            >
-              <div className="relative flex w-full flex-col gap-1">
-                <span className="rounded bg-black/45 px-1.5 py-0.5 text-center text-[0.65rem] font-medium text-white backdrop-blur-sm sm:text-xs">
-                  <span>{slot.label}</span>
+          {PITCH_POINT_ORDER.map((id) => {
+            const slot = slots[id]
+            const metricsOpen = openMetricsSlot === id
+            const zSlot = slotStackZ(id, metricsOpen)
+            const hasUserPhoto = slot.previewUrl && !slot.isSample
+            const inputId = `turfpool-file-${id}`
+
+            return (
+              <div
+                key={id}
+                className={`absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 ${zSlot} ${MARKER_POS[id]}`}
+              >
+                <span className="whitespace-nowrap rounded bg-black/50 px-1.5 py-0.5 text-[0.6rem] font-medium text-white backdrop-blur-sm sm:text-[0.65rem]">
+                  {slot.label}
                   {slot.isSample ? (
-                    <span className="ml-1 inline-block rounded bg-amber-400/95 px-1 py-px text-[0.55rem] font-semibold text-slate-900">
+                    <span className="ml-1 rounded bg-amber-400/95 px-1 py-px text-[0.55rem] font-semibold text-slate-900">
                       サンプル
                     </span>
                   ) : null}
                 </span>
-                <input
-                  id={`turfpool-file-${id}`}
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  disabled={slot.busy}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0]
-                    void handleFile(id, f)
-                    e.target.value = ''
-                  }}
-                />
-                <label
-                  htmlFor={`turfpool-file-${id}`}
-                  className={`flex min-h-[4.5rem] flex-col overflow-hidden rounded-lg border-2 border-white/80 bg-black/35 shadow-md backdrop-blur-sm transition sm:min-h-[5rem] ${
-                    slot.busy
-                      ? 'cursor-not-allowed opacity-50'
-                      : 'cursor-pointer hover:bg-black/45'
-                  }`}
-                >
-                  {slot.previewUrl ? (
-                    <img
-                      src={slot.previewUrl}
-                      alt=""
-                      title={slot.isSample ? 'サンプル画像（デモ）' : undefined}
-                      className="pointer-events-none h-16 w-full object-cover sm:h-20"
+
+                <div className="relative">
+                  <input
+                    id={inputId}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="sr-only"
+                    disabled={slot.busy}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      void handleFile(id, f)
+                      e.target.value = ''
+                    }}
+                  />
+                  <label
+                    htmlFor={inputId}
+                    title={
+                      slot.busy
+                        ? '解析中'
+                        : hasUserPhoto
+                          ? '再撮影'
+                          : '撮影または画像を選ぶ'
+                    }
+                    className={`relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 bg-slate-950/75 text-white shadow-lg backdrop-blur-sm transition sm:h-14 sm:w-14 ${
+                      slot.busy
+                        ? 'cursor-not-allowed border-white/40 opacity-60'
+                        : hasUserPhoto
+                          ? 'cursor-pointer border-emerald-300 ring-2 ring-emerald-400/50 hover:bg-slate-900/85'
+                          : 'cursor-pointer border-white/90 hover:border-cyan-200 hover:bg-slate-900/85'
+                    }`}
+                  >
+                    {slot.previewUrl ? (
+                      <img
+                        src={slot.previewUrl}
+                        alt=""
+                        className="absolute inset-0 h-full w-full object-cover opacity-90"
+                      />
+                    ) : null}
+                    <CameraIcon
+                      className={`relative z-[1] h-6 w-6 sm:h-7 sm:w-7 ${
+                        slot.previewUrl ? 'drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]' : ''
+                      }`}
                     />
-                  ) : (
-                    <span className="flex flex-1 items-center justify-center px-1 text-[0.65rem] text-white/90 sm:text-xs">
-                      {slot.busy ? '解析中…' : 'タップで画像'}
-                    </span>
-                  )}
-                </label>
+                    {hasUserPhoto ? (
+                      <span
+                        className="absolute -right-0.5 -top-0.5 z-[2] flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[0.55rem] font-bold text-white ring-2 ring-emerald-950"
+                        aria-hidden
+                      >
+                        ✓
+                      </span>
+                    ) : null}
+                    {slot.busy ? (
+                      <span className="absolute inset-0 z-[3] flex items-center justify-center bg-black/45 text-[0.55rem] font-medium">
+                        …
+                      </span>
+                    ) : null}
+                  </label>
+                </div>
+
                 <SlotMetricsAccordion
                   indices={slot.indices}
                   open={metricsOpen}
@@ -321,15 +342,15 @@ export function PitchUploader({
                     })
                   }}
                 />
+
+                {slot.error ? (
+                  <p className="max-w-[7rem] text-center text-[0.55rem] leading-tight text-red-300">
+                    {slot.error}
+                  </p>
+                ) : null}
               </div>
-              {slot.error ? (
-                <p className="text-[0.6rem] leading-tight text-red-300">
-                  {slot.error}
-                </p>
-              ) : null}
-            </div>
-          )
-        })}
+            )
+          })}
         </div>
       </div>
     </div>

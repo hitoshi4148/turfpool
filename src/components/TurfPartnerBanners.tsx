@@ -1,3 +1,5 @@
+import { appAsset } from '../config/assets'
+
 const linkClass =
   'inline-block max-w-full overflow-hidden rounded-lg ring-1 ring-slate-700/60 transition hover:ring-cyan-500/50 hover:opacity-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500'
 
@@ -19,7 +21,7 @@ export function TurfPartnerBanners() {
             className={linkClass}
           >
             <img
-              src="/banner_pr_size1.png"
+              src={appAsset('banner_pr_size1.png')}
               alt="芝管理のプロにPRしませんか？農薬・資材・機械メーカー様向けパートナー募集"
               className={imgIntrinsic}
               loading="lazy"
@@ -35,7 +37,7 @@ export function TurfPartnerBanners() {
             className={linkClass}
           >
             <img
-              src="/bloglink.png"
+              src={appAsset('bloglink.png')}
               alt="芝管理技術ブログ — データ駆動型の芝草管理を解説"
               className={SECOND_ROW_IMG}
               width={300}
@@ -51,7 +53,7 @@ export function TurfPartnerBanners() {
             className={linkClass}
           >
             <img
-              src="/youtubelink.png"
+              src={appAsset('youtubelink.png')}
               alt="YouTube — 現場で役立つ芝管理ノウハウ（Grow and Progress）"
               className={SECOND_ROW_IMG}
               width={300}
