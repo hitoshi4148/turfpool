@@ -1,4 +1,4 @@
-export const APP_VERSION = 'v1.2.4'
+export const APP_VERSION = 'v1.2.5'
 
 export const SHIBA_SHIGOTO_APPS = [
   { label: 'ポータル', href: 'https://www.turf-tools.jp/portal/' },
@@ -6,10 +6,7 @@ export const SHIBA_SHIGOTO_APPS = [
   { label: '楽RAC農薬ローテ', href: 'https://www.turf-tools.jp/portal/rac/' },
   { label: '施肥設計ナビ', href: 'https://fertilization-design.onrender.com/' },
   { label: '病害リスク予報', href: 'https://www.turf-tools.jp/portal/risk/' },
-  {
-    label: 'AI質問箱',
-    href: 'https://www.turf-tools.jp/portal/#ai-advisor-section',
-  },
+  { label: 'AI相談室', href: 'https://www.turf-tools.jp/aihelpdesk/' },
   { label: '病害画像診断AI', href: 'https://www.turf-tools.jp/portal/diagnosis/' },
   {
     label: 'ピンポイント天気で芝しごと',
