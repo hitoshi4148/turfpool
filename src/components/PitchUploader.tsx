@@ -72,22 +72,36 @@ function CameraIcon({ className }: { className?: string }) {
   )
 }
 
+type PanelAlign = 'start' | 'center' | 'end'
+
 function SlotMetricsAccordion({
   indices,
   open,
   onOpenChange,
   opensAbove,
+  align,
 }: {
   indices: TurfIndices | null
   open: boolean
   onOpenChange: (open: boolean) => void
   opensAbove: boolean
+  align: PanelAlign
 }) {
   const panelId = useId()
 
+  const alignClass =
+    align === 'start'
+      ? 'left-0'
+      : align === 'end'
+        ? 'right-0'
+        : 'left-1/2 -translate-x-1/2'
+
+  const panelBase =
+    'absolute z-[100] w-[min(14rem,calc(100vw-2rem))] max-h-[min(55vh,24rem)] overflow-y-auto rounded-md bg-slate-950/95 px-2 py-2 text-left shadow-xl ring-1 ring-white/15 backdrop-blur-sm'
+
   const panelClass = opensAbove
-    ? 'absolute left-1/2 z-[100] mb-1 w-[min(14rem,calc(100vw-2rem))] max-h-[min(42vh,15rem)] -translate-x-1/2 overflow-y-auto rounded-md bg-slate-950/95 px-2 py-2 text-left shadow-xl ring-1 ring-white/15 backdrop-blur-sm bottom-full'
-    : 'absolute left-1/2 z-[100] mt-1 w-[min(14rem,calc(100vw-2rem))] max-h-[min(55vh,24rem)] -translate-x-1/2 overflow-y-auto rounded-md bg-slate-950/95 px-2 py-2 text-left shadow-xl ring-1 ring-white/15 backdrop-blur-sm top-full'
+    ? `${panelBase} ${alignClass} mb-1 max-h-[min(42vh,15rem)] bottom-full`
+    : `${panelBase} ${alignClass} mt-1 top-full`
 
   return (
     <div className="relative">
@@ -107,6 +121,15 @@ function SlotMetricsAccordion({
       ) : null}
     </div>
   )
+}
+
+/** 指標パネルの水平位置（ピッチ端では見切れないよう寄せる） */
+const PANEL_ALIGN: Record<PitchPointId, PanelAlign> = {
+  tl: 'start',
+  tr: 'end',
+  bl: 'start',
+  br: 'end',
+  c: 'center',
 }
 
 /** ピッチ上のカメラマーク位置（中心基準） */
@@ -295,7 +318,7 @@ export function PitchUploader({
       </p>
 
       <div
-        className="relative mx-auto flex w-full max-w-4xl flex-col overflow-hidden rounded-xl border-4 border-white bg-gradient-to-b from-emerald-800 to-emerald-950 shadow-lg select-none xl:max-w-5xl 2xl:max-w-6xl"
+        className="relative mx-auto flex w-full max-w-4xl flex-col overflow-visible rounded-xl border-4 border-white bg-gradient-to-b from-emerald-800 to-emerald-950 shadow-lg select-none xl:max-w-5xl 2xl:max-w-6xl"
         style={{
           boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.35)',
         }}
@@ -457,6 +480,7 @@ export function PitchUploader({
                   indices={slot.indices}
                   open={metricsOpen}
                   opensAbove={id === 'bl' || id === 'br'}
+                  align={PANEL_ALIGN[id]}
                   onOpenChange={(next) => {
                     setOpenMetricsSlot((cur) => {
                       if (next) return id
