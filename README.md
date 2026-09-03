@@ -1,8 +1,8 @@
 # 芝しごと・ターフプール（TurfPool）
 
-**バージョン: v1.2.0**
+**バージョン: v1.2.6**
 
-サッカーグラウンドの芝を、**ピッチ上の 5 地点（四隅＋中央）の写真**から把握するための Web アプリです。スマホのカメラで各地点を撮影（またはファイル選択）し、ブラウザ内で画像を解析して数値指標と **3D のプール状ビュー** でフィールド全体の傾向を可視化します。
+サッカーグラウンドの芝を、**ピッチ上の 5 地点（四隅＋中央）の写真**から把握するための Web アプリです。スマホのカメラで各地点を撮影（またはファイル選択）し、ブラウザ内で画像を解析して数値指標と **3D のプール状ビュー** でフィールド全体の傾向を可視化します。説明文の下に **🆕 新しい解説**（ブログ）と **▶ 解説動画**（YouTube）へのリンクがあります。
 
 - **クライアント完結**: 画像は端末外へ送信されず、サーバーに保存もされません。
 - **静的フロントのみ**: API サーバー不要。`tool-portal` リポジトリへビルド成果物を配置して Cloudflare Pages で公開します。
@@ -106,14 +106,14 @@ npm run lint
 ## クレジット・リンク
 
 - ブラウザタブのファビコン: グロウアンドプログレスのロゴ（ポータル共有 `/portal/grow-and-progress-logo.png`）
-- フッター: 芝しごとシリーズ各アプリへのリンク、[グロウアンドプログレス](https://www.turf-tools.jp/) のロゴとサイトリンク、アプリバージョン（v1.2.0）
+- フッター: 芝しごとシリーズ各アプリへのリンク、[グロウアンドプログレス](https://www.turf-tools.jp/) のロゴとサイトリンク、アプリバージョン（v1.2.6）
 - 芝しごとシリーズ（フッター掲載）:
   - [ポータル](https://www.turf-tools.jp/portal/)
+  - [ターフプール](https://www.turf-tools.jp/portal/turfpool/)
   - [楽RAC農薬ローテ](https://www.turf-tools.jp/portal/rac/)
   - [施肥設計ナビ](https://fertilization-design.onrender.com/)
   - [病害リスク予報](https://www.turf-tools.jp/portal/risk/)
-  - [ターフプール](https://www.turf-tools.jp/portal/turfpool/)
-  - [AI質問箱](https://www.turf-tools.jp/portal/#ai-advisor-section)
+  - [AI相談室](https://www.turf-tools.jp/aihelpdesk/)
   - [病害画像診断AI](https://www.turf-tools.jp/portal/diagnosis/)
   - [ピンポイント天気で芝しごと](https://www.turf-tools.jp/portal/spray/)
   - [積算温度追跡マップ](https://turfmap.onrender.com/)

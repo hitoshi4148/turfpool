@@ -71,6 +71,24 @@ function App() {
         <p className="mt-1 max-w-2xl text-xs text-slate-400 sm:text-sm">
           サッカーグラウンドの芝の状態を、ピッチ上の5地点（四隅と中央）の写真から把握するためのツールです。各点の画像を解析すると、芝の指標とプール状のビューでフィールド全体の傾向やムラを可視化できます。
         </p>
+        <p className="mt-2 flex flex-wrap items-center gap-2">
+          <a
+            href="https://www.turf-tools.jp/post/%E3%80%8C%E8%8A%9D%E3%81%97%E3%81%94%E3%81%A8%E3%83%BB%E3%82%BF%E3%83%BC%E3%83%95%E3%83%97%E3%83%BC%E3%83%AB%E3%80%8D%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9"
+            className="inline-flex items-center rounded-full border border-cyan-700/80 bg-slate-900 px-2.5 py-0.5 text-[0.7rem] font-semibold text-cyan-300 no-underline transition hover:border-cyan-500 hover:bg-cyan-600 hover:text-white sm:text-xs"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            🆕 新しい解説
+          </a>
+          <a
+            href="https://youtu.be/7R4rPxt9XpU"
+            className="inline-flex items-center rounded-full border border-cyan-700/80 bg-slate-900 px-2.5 py-0.5 text-[0.7rem] font-semibold text-cyan-300 no-underline transition hover:border-cyan-500 hover:bg-cyan-600 hover:text-white sm:text-xs"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            ▶ 解説動画
+          </a>
+        </p>
       </header>
 
       <TurfPartnerBanners />
