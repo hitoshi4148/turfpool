@@ -73,6 +73,14 @@ function App() {
         </p>
         <p className="mt-2 flex flex-wrap items-center gap-2">
           <a
+            href="https://www.turf-tools.jp/%E9%96%8B%E8%A8%AD-%E8%8A%9D%E3%81%97%E3%81%94%E3%81%A8"
+            className="inline-flex items-center rounded-full border border-cyan-700/80 bg-slate-900 px-2.5 py-0.5 text-[0.7rem] font-semibold text-cyan-300 no-underline transition hover:border-cyan-500 hover:bg-cyan-600 hover:text-white sm:text-xs"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            公式解説
+          </a>
+          <a
             href="https://www.turf-tools.jp/post/%E3%80%8C%E8%8A%9D%E3%81%97%E3%81%94%E3%81%A8%E3%83%BB%E3%82%BF%E3%83%BC%E3%83%95%E3%83%97%E3%83%BC%E3%83%AB%E3%80%8D%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9"
             className="inline-flex items-center rounded-full border border-cyan-700/80 bg-slate-900 px-2.5 py-0.5 text-[0.7rem] font-semibold text-cyan-300 no-underline transition hover:border-cyan-500 hover:bg-cyan-600 hover:text-white sm:text-xs"
             target="_blank"
